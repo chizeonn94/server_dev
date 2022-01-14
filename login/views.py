@@ -4,6 +4,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
+
+from login.serialize import LoginUserSerializer
 from .models import LoginUser
 
 
@@ -25,32 +27,23 @@ class AppLogin(APIView):
 
 class RegistUser(APIView):
     def post(self, request):
-        user_id = request.data.get('user_id')
-        user_pw = request.data.get('user_pw')
-        birth_day = request.data.get('birth_day')
-        gender = request.data.get('gender')
-        email = request.data.get('email')
-        name = request.data.get('name')
-        age = request.data.get('age')
+        serializer = LoginUserSerializer(request.data)
+        print('sfsfs', type(serializer.data))
+        return Response(serializer.data)
+        # if LoginUser.objects.filter(user_id=serializer.data['user_id']).exists():
+        #     # DB에 있는 값 출력할 때 어떻게 나오는지 보려고 user 객체에 담음
+        #     user = LoginUser.objects.filter(
+        #         user_id=serializer.data['user_id']).first()
+        #     data = dict(
+        #         msg="이미 존재하는 아이디입니다.",
+        #         user_id=user.user_id,
+        #         user_pw=user.user_pw
+        #     )
+        #     return Response(data)
 
-        user_pw_encrypted = make_password(user_pw)
-        user = LoginUser.objects.filter(user_id=user_id).first()
-        if user is not None:
-            return Response(dict(msg="동일한 아이디가 있습니다."))
-        LoginUser.objects.create(user_id=user_id, user_pw=user_pw_encrypted,
-                                 birth_day=birth_day, gender=gender, email=email, name=name, age=age)
-        data = dict(
-            user_id=user_id,
-            user_pw=user_pw_encrypted,
-            birth_day=birth_day,
-            gender=gender,
-            email=email,
-            name=name,
-            age=age
-        )
-        # print('>>>>.', request.data)
+        # user = serializer.create(request.data)
 
-        return Response(data)
+        # return Response(data=LoginUserSerializer(user).data)
 
     def get(self, request):
         print(request)
